@@ -62,18 +62,20 @@ export const AuthPage = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-10 rounded-full bg-gradient-primary mb-4 shadow-strong"
+            className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-primary mb-4 shadow-strong"
           >
-            <Leaf className="w-6 h-6 text-primary-foreground" />
+            <Leaf className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
           </motion.div>
-          <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
-            Habit Hero
-            <Sparkles className="w-6 h-6 text-accent" />
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2 flex items-center justify-center gap-2 flex-wrap">
+            <span>Habit Hero</span>
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
           </h1>
-          <p className="text-muted-foreground">Build better habits, one day at a time</p>
+          <p className="text-muted-foreground text-sm sm:text-base px-4">
+            Build better habits, one day at a time
+          </p>
         </div>
 
-        <Card className="p-8 shadow-medium bg-gradient-card border-border">
+        <Card className="p-6 sm:p-8 shadow-medium bg-gradient-card border-border">
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground font-medium">

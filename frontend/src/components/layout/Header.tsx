@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Leaf, LogOut, Plus } from "lucide-react";
+import { Leaf, LogOut, Plus, Menu } from "lucide-react";
+import { useState } from "react";
 
 interface HeaderProps {
   onOpenAddHabit?: () => void;
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 export const Header = ({ onOpenAddHabit }: HeaderProps) => {
   const { user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -25,7 +27,8 @@ export const Header = ({ onOpenAddHabit }: HeaderProps) => {
             <h1 className="text-2xl font-bold text-foreground">Habit Hero</h1>
           </Link>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-3">
             {user && onOpenAddHabit && (
               <Button
                 onClick={onOpenAddHabit}
@@ -46,7 +49,52 @@ export const Header = ({ onOpenAddHabit }: HeaderProps) => {
               </Button>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="border-border"
+            >
+              <Menu className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-border pt-4">
+            <div className="flex flex-col gap-3">
+              {user && onOpenAddHabit && (
+                <Button
+                  onClick={() => {
+                    onOpenAddHabit();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="bg-gradient-primary hover:opacity-90 shadow-medium w-full justify-start"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Habit
+                </Button>
+              )}
+              {user && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="border-border hover:bg-secondary w-full justify-start"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

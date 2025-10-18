@@ -53,68 +53,68 @@ export const Analytics = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-2">Analytics Dashboard</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Analytics Dashboard</h2>
+        <p className="text-muted-foreground text-sm sm:text-base">
           Track your habit-building progress and insights
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="p-6 bg-gradient-card border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <Target className="w-6 h-6 text-primary" />
+      {/* Stats Cards - Responsive Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+        <Card className="p-4 sm:p-6 bg-gradient-card border-border">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-primary/10 rounded-full">
+              <Target className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Habits</p>
-              <p className="text-2xl font-bold text-foreground">{totalHabits}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 bg-gradient-card border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-success/10 rounded-full">
-              <Trophy className="w-6 h-6 text-success" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Check-ins</p>
-              <p className="text-2xl font-bold text-foreground">{totalCheckins}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-muted-foreground">Total Habits</p>
+              <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{totalHabits}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-card border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-accent/10 rounded-full">
-              <TrendingUp className="w-6 h-6 text-accent" />
+        <Card className="p-4 sm:p-6 bg-gradient-card border-border">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-success/10 rounded-full">
+              <Trophy className="w-4 h-4 sm:w-6 sm:h-6 text-success" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Avg Streak</p>
-              <p className="text-2xl font-bold text-foreground">{averageStreak}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-muted-foreground">Total Check-ins</p>
+              <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{totalCheckins}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-card border-border">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-secondary/10 rounded-full">
-              <Calendar className="w-6 h-6 text-secondary-foreground" />
+        <Card className="p-4 sm:p-6 bg-gradient-card border-border">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-accent/10 rounded-full">
+              <TrendingUp className="w-4 h-4 sm:w-6 sm:h-6 text-accent" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Completion Rate</p>
-              <p className="text-2xl font-bold text-foreground">{completionRate}%</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-muted-foreground">Avg Streak</p>
+              <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{averageStreak}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4 sm:p-6 bg-gradient-card border-border">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-secondary/10 rounded-full">
+              <Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-secondary-foreground" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-muted-foreground">Completion Rate</p>
+              <p className="text-lg sm:text-2xl font-bold text-foreground truncate">{completionRate}%</p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Charts - Stack on mobile */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Habit Completion Chart */}
-        <Card className="p-6 bg-gradient-card border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Habit Completion</h3>
+        <Card className="p-4 sm:p-6 bg-gradient-card border-border">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4">Habit Completion</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={completionData}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -139,8 +139,8 @@ export const Analytics = () => {
         </Card>
 
         {/* Category Distribution */}
-        <Card className="p-6 bg-gradient-card border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Habits by Category</h3>
+        <Card className="p-4 sm:p-6 bg-gradient-card border-border">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4">Habits by Category</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -182,8 +182,8 @@ export const Analytics = () => {
       </div>
 
       {/* Weekly Progress */}
-      <Card className="p-6 bg-gradient-card border-border">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Weekly Progress</h3>
+      <Card className="p-4 sm:p-6 bg-gradient-card border-border">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4">Weekly Progress</h3>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={weeklyData}>
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
