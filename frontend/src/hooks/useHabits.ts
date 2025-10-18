@@ -1,59 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Habit, HabitCheckin, HabitWithCheckins } from '@/types/habit';
 import { useAuth } from '@/contexts/AuthContext';
-
-// Mock data - replace with API calls later
-const mockHabits: Habit[] = [
-  {
-    id: "1",
-    name: "Drink Water",
-    frequency: "daily",
-    category: "health",
-    start_date: "2024-01-01",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-    user_id: "demo-user"
-  },
-  {
-    id: "2",
-    name: "Exercise",
-    frequency: "daily",
-    category: "health",
-    start_date: "2024-01-01",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-    user_id: "demo-user"
-  },
-  {
-    id: "3",
-    name: "Read Books",
-    frequency: "daily",
-    category: "learning",
-    start_date: "2024-01-01",
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-    user_id: "demo-user"
-  }
-];
-
-const mockCheckins: HabitCheckin[] = [
-  {
-    id: "1",
-    habit_id: "1",
-    user_id: "demo-user",
-    checkin_date: "2024-01-15",
-    notes: "Drank 8 glasses",
-    created_at: "2024-01-15T00:00:00Z"
-  },
-  {
-    id: "2",
-    habit_id: "2",
-    user_id: "demo-user",
-    checkin_date: "2024-01-15",
-    notes: "30 minutes workout",
-    created_at: "2024-01-15T00:00:00Z"
-  }
-];
+import { habitsAPI } from '@/lib/api';
 
 export const useHabits = () => {
   const { user } = useAuth();
@@ -63,37 +11,93 @@ export const useHabits = () => {
 
   useEffect(() => {
     if (user) {
-      // TODO: Replace with API calls
-      // const fetchHabits = async () => {
-      //   const response = await fetch('/api/habits');
-      //   const data = await response.json();
-      //   setHabits(data);
-      // };
-      // const fetchCheckins = async () => {
-      //   const response = await fetch('/api/habits/checkins');
-      //   const data = await response.json();
-      //   setCheckins(data);
-      // };
-
-      // Simulate API calls
-      setTimeout(() => {
-        setHabits(mockHabits.filter(h => h.user_id === user.id));
-        setCheckins(mockCheckins.filter(c => c.user_id === user.id));
-        setLoading(false);
-      }, 500);
+      loadHabitsAndCheckins();
     }
   }, [user]);
+
+  const loadHabitsAndCheckins = async () => {
+    try {
+      setLoading(true);
+
+      // TODO: Uncomment when backend is ready
+      // const [habitsResponse, checkinsResponse] = await Promise.all([
+      //   habitsAPI.getAll(),
+      //   habitsAPI.getCheckins()
+      // ]);
+
+      // setHabits(habitsResponse.habits);
+      // setCheckins(checkinsResponse.checkins);
+
+      // For now, use mock data
+      const mockHabits: Habit[] = [
+        {
+          id: "1",
+          name: "Drink Water",
+          frequency: "daily",
+          category: "health",
+          start_date: "2024-01-01",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+          user_id: user?.id || "demo-user"
+        },
+        {
+          id: "2",
+          name: "Exercise",
+          frequency: "daily",
+          category: "health",
+          start_date: "2024-01-01",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+          user_id: user?.id || "demo-user"
+        },
+        {
+          id: "3",
+          name: "Read Books",
+          frequency: "daily",
+          category: "learning",
+          start_date: "2024-01-01",
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z",
+          user_id: user?.id || "demo-user"
+        }
+      ];
+
+      const mockCheckins: HabitCheckin[] = [
+        {
+          id: "1",
+          habit_id: "1",
+          user_id: user?.id || "demo-user",
+          checkin_date: "2024-01-15",
+          notes: "Drank 8 glasses",
+          created_at: "2024-01-15T00:00:00Z"
+        },
+        {
+          id: "2",
+          habit_id: "2",
+          user_id: user?.id || "demo-user",
+          checkin_date: "2024-01-15",
+          notes: "30 minutes workout",
+          created_at: "2024-01-15T00:00:00Z"
+        }
+      ];
+
+      setHabits(mockHabits);
+      setCheckins(mockCheckins);
+    } catch (error) {
+      console.error('Failed to load habits:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addHabit = async (habitData: Omit<Habit, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
     if (!user) return;
 
-    // TODO: Replace with API call
-    // const response = await fetch('/api/habits', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ ...habitData, user_id: user.id })
-    // });
-    // const newHabit = await response.json();
+    // TODO: Uncomment when backend is ready
+    // const response = await habitsAPI.create(habitData);
+    // const newHabit = response.habit;
+    // setHabits(prev => [...prev, newHabit]);
+    // return newHabit;
 
     // Simulate API call
     const newHabit: Habit = {
@@ -117,21 +121,17 @@ export const useHabits = () => {
     );
 
     if (existingCheckin) {
-      // TODO: Replace with API call
-      // await fetch(`/api/habits/${habitId}/checkins/${existingCheckin.id}`, {
-      //   method: 'DELETE'
-      // });
+      // TODO: Uncomment when backend is ready
+      // await habitsAPI.removeCheckin(habitId, existingCheckin.id);
+      // setCheckins(prev => prev.filter(c => c.id !== existingCheckin.id));
 
       // Simulate API call
       setCheckins(prev => prev.filter(c => c.id !== existingCheckin.id));
     } else {
-      // TODO: Replace with API call
-      // const response = await fetch(`/api/habits/${habitId}/checkins`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ checkin_date: today })
-      // });
-      // const newCheckin = await response.json();
+      // TODO: Uncomment when backend is ready
+      // const response = await habitsAPI.addCheckin(habitId, { checkin_date: today });
+      // const newCheckin = response.checkin;
+      // setCheckins(prev => [...prev, newCheckin]);
 
       // Simulate API call
       const newCheckin: HabitCheckin = {
@@ -147,8 +147,10 @@ export const useHabits = () => {
   };
 
   const deleteHabit = async (habitId: string) => {
-    // TODO: Replace with API call
-    // await fetch(`/api/habits/${habitId}`, { method: 'DELETE' });
+    // TODO: Uncomment when backend is ready
+    // await habitsAPI.delete(habitId);
+    // setHabits(prev => prev.filter(h => h.id !== habitId));
+    // setCheckins(prev => prev.filter(c => c.habit_id !== habitId));
 
     // Simulate API call
     setHabits(prev => prev.filter(h => h.id !== habitId));
@@ -181,6 +183,7 @@ export const useHabits = () => {
     addHabit,
     toggleCheckin,
     deleteHabit,
-    getHabitsWithCheckins
+    getHabitsWithCheckins,
+    refreshData: loadHabitsAndCheckins
   };
 };

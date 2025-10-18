@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authAPI } from '@/lib/api';
 
 interface User {
   id: string;
@@ -34,10 +35,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     // Check if user is logged in on app start
     const checkAuth = () => {
-      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      const token = localStorage.getItem('authToken');
       const userEmail = localStorage.getItem('userEmail');
 
-      if (isLoggedIn && userEmail) {
+      if (token && userEmail) {
+        // TODO: Uncomment when backend is ready
+        // try {
+        //   const response = await authAPI.getProfile();
+        //   setUser(response.user);
+        // } catch (error) {
+        //   // Token might be invalid, clear it
+        //   localStorage.removeItem('authToken');
+        //   localStorage.removeItem('userEmail');
+        // }
+
+        // For now, simulate user from stored data
         setUser({
           id: 'demo-user',
           email: userEmail
@@ -50,19 +62,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // TODO: Replace with actual API call
-    // const response = await fetch('/api/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password })
-    // });
-    // const data = await response.json();
+    // TODO: Uncomment when backend is ready
+    // const response = await authAPI.login(email, password);
+    // localStorage.setItem('authToken', response.token);
+    // localStorage.setItem('userEmail', email);
+    // setUser(response.user);
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Store auth state
-    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('authToken', 'demo-token');
     localStorage.setItem('userEmail', email);
 
     setUser({
@@ -72,20 +82,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signup = async (email: string, password: string) => {
-    // TODO: Replace with actual API call
-    // const response = await fetch('/api/auth/signup', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password })
-    // });
-    // const data = await response.json();
+    // TODO: Uncomment when backend is ready
+    // const response = await authAPI.signup(email, password);
+    // localStorage.setItem('authToken', response.token);
+    // localStorage.setItem('userEmail', email);
+    // setUser(response.user);
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
   };
 
   const logout = () => {
-    localStorage.removeItem('isLoggedIn');
+    // TODO: Uncomment when backend is ready
+    // try {
+    //   await authAPI.logout();
+    // } catch (error) {
+    //   console.error('Logout error:', error);
+    // }
+
+    localStorage.removeItem('authToken');
     localStorage.removeItem('userEmail');
     setUser(null);
   };
