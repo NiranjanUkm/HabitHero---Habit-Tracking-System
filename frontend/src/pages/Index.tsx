@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { HabitCard } from "@/components/habits/HabitCard";
 import { HabitForm } from "@/components/habits/HabitForm";
 import { CalendarView } from "@/components/calendar/CalendarView";
+import { Analytics } from "@/components/analytics/Analytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Calendar, LayoutDashboard } from "lucide-react";
 
@@ -51,9 +52,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="text-lg">Analytics dashboard coming soon...</p>
-            </div>
+            <Analytics />
           </TabsContent>
         </Tabs>
       </main>
