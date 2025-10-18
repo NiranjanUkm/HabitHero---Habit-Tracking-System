@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Leaf, Sparkles } from "lucide-react";
 
 export const AuthPage = () => {
@@ -13,51 +15,28 @@ export const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { login, signup } = useAuth();
+  const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // TODO: Replace with actual backend API calls to Flask
       if (isSignUp) {
-        // const response = await fetch('/api/auth/signup', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ email, password })
-        // });
-        // const data = await response.json();
-
-        // Simulate signup API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
+        await signup(email, password);
         toast({
           title: "Success!",
           description: "Account created successfully. You can now sign in.",
         });
         setIsSignUp(false);
       } else {
-        // const response = await fetch('/api/auth/login', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ email, password })
-        // });
-        // const data = await response.json();
-
-        // Simulate login API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Store auth state (replace with actual token handling)
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', email);
-
+        await login(email, password);
         toast({
           title: "Welcome back!",
           description: "You've successfully signed in.",
         });
-
-        // Navigate to main app
-        window.location.href = '/dashboard';
+        navigate('/');
       }
     } catch (error: any) {
       toast({
@@ -83,9 +62,9 @@ export const AuthPage = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary mb-4 shadow-strong"
+            className="inline-flex items-center justify-center w-20 h-10 rounded-full bg-gradient-primary mb-4 shadow-strong"
           >
-            <Leaf className="w-10 h-10 text-primary-foreground" />
+            <Leaf className="w-6 h-6 text-primary-foreground" />
           </motion.div>
           <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
             Habit Hero
