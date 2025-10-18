@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHabits } from "@/hooks/useHabits";
 import { Header } from "@/components/layout/Header";
+import { HabitCard } from "@/components/habits/HabitCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Calendar, LayoutDashboard } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
@@ -36,10 +38,15 @@ const Index = () => {
           <p className="text-lg">No habits yet. Create your first one!</p>
         </div>
       ) : (
-        filteredHabits.map((habit) => (
-          <div key={habit.id} className="text-sm">
-            {habit.name} - {habit.category} - {habit.completedToday ? '✅' : '⏳'}
-          </div>
+        filteredHabits.map((habit, index) => (
+          <motion.div
+            key={habit.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <HabitCard habit={habit} />
+          </motion.div>
         ))
       )}
     </div>
