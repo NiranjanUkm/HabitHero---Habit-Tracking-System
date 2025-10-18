@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHabits } from "@/hooks/useHabits";
 import { Header } from "@/components/layout/Header";
 import { HabitCard } from "@/components/habits/HabitCard";
+import { HabitForm } from "@/components/habits/HabitForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Calendar, LayoutDashboard } from "lucide-react";
-import { motion } from "framer-motion";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
@@ -142,6 +143,14 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <HabitForm
+        open={showAddHabit}
+        onOpenChange={setShowAddHabit}
+        onSuccess={() => {
+          // Habits will be refreshed automatically via the hook
+        }}
+      />
     </div>
   );
 };
