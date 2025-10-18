@@ -80,13 +80,15 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
       transition={{ duration: 0.2 }}
     >
       <Card
-        className={`p-4 border-l-4 ${categoryColors[habit.category]} bg-gradient-card shadow-soft hover:shadow-medium transition-all`}
+        className={`p-4 border-l-4 ${categoryColors[habit.category]} bg-gradient-card shadow-soft hover:shadow-medium transition-all duration-200`}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1">
-            <button
+            <motion.button
               onClick={handleToggleCheckin}
               disabled={loading}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               className="mt-1 hover:scale-110 transition-transform"
             >
               {habit.completedToday ? (
@@ -94,7 +96,7 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
               ) : (
                 <Circle className="w-6 h-6 text-muted-foreground hover:text-primary" />
               )}
-            </button>
+            </motion.button>
 
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -116,7 +118,7 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
             size="icon"
             onClick={handleDelete}
             disabled={deleting}
-            className="hover:bg-destructive hover:text-destructive-foreground border-border"
+            className="hover:bg-destructive hover:text-destructive-foreground border-border transition-colors"
           >
             <Trash2 className="w-4 h-4" />
           </Button>

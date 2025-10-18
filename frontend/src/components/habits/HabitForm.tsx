@@ -75,7 +75,13 @@ export const HabitForm = ({ open, onOpenChange, onSuccess }: HabitFormProps) => 
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+        <motion.form
+          onSubmit={handleSubmit}
+          className="space-y-6 mt-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <div className="space-y-2">
             <Label htmlFor="name" className="text-foreground font-medium">
               Habit Name
@@ -143,11 +149,11 @@ export const HabitForm = ({ open, onOpenChange, onSuccess }: HabitFormProps) => 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-primary hover:opacity-90 shadow-medium"
+            className="w-full bg-gradient-primary hover:opacity-90 transition-opacity shadow-medium"
           >
             {loading ? "Creating..." : "Create Habit"}
           </Button>
-        </form>
+        </motion.form>
       </DialogContent>
     </Dialog>
   );

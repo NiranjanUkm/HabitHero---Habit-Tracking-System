@@ -9,12 +9,24 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="*" element={<div>404 - Page Not Found</div>} />
-        </Routes>
-        <Toaster />
+        <div className="min-h-screen bg-gradient-subtle">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="*" element={
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-4xl font-bold text-foreground mb-4">404</h1>
+                  <p className="text-muted-foreground mb-8">Page not found</p>
+                  <a href="/" className="text-primary hover:text-primary-light transition-colors">
+                    Go back home
+                  </a>
+                </div>
+              </div>
+            } />
+          </Routes>
+          <Toaster />
+        </div>
       </BrowserRouter>
     </AuthProvider>
   );

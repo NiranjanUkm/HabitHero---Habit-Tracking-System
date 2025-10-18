@@ -8,7 +8,7 @@ import { HabitForm } from "@/components/habits/HabitForm";
 import { CalendarView } from "@/components/calendar/CalendarView";
 import { Analytics } from "@/components/analytics/Analytics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, Calendar, LayoutDashboard } from "lucide-react";
+import { BarChart3, Calendar, LayoutDashboard, Sparkles } from "lucide-react";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
@@ -18,7 +18,16 @@ const Index = () => {
   if (authLoading || habitsLoading) {
     return (
       <div className="min-h-screen bg-gradient-subtle flex items-center justify-center px-4">
-        <div className="text-2xl font-bold text-primary">Loading...</div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4 mx-auto shadow-strong">
+            <Sparkles className="w-8 h-8 text-primary-foreground animate-pulse" />
+          </div>
+          <div className="text-2xl font-bold text-primary">Loading...</div>
+        </motion.div>
       </div>
     );
   }
@@ -37,9 +46,17 @@ const Index = () => {
   const HabitList = ({ filteredHabits }: { filteredHabits: typeof habitsWithCheckins }) => (
     <div className="space-y-3">
       {filteredHabits.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground px-4">
-          <p className="text-lg">No habits yet. Create your first one!</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12 text-muted-foreground px-4"
+        >
+          <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4 mx-auto">
+            <Sparkles className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="text-lg mb-2">No habits yet!</p>
+          <p className="text-sm">Create your first habit to get started on your journey.</p>
+        </motion.div>
       ) : (
         filteredHabits.map((habit, index) => (
           <motion.div
@@ -65,7 +82,7 @@ const Index = () => {
           <TabsList className="mb-6 bg-secondary/50 p-1 w-full grid grid-cols-3 h-auto">
             <TabsTrigger
               value="dashboard"
-              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground flex flex-col items-center gap-1 py-3 px-2 text-xs sm:text-sm"
+              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground flex flex-col items-center gap-1 py-3 px-2 text-xs sm:text-sm transition-all"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -73,14 +90,14 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger
               value="calendar"
-              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground flex flex-col items-center gap-1 py-3 px-2 text-xs sm:text-sm"
+              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground flex flex-col items-center gap-1 py-3 px-2 text-xs sm:text-sm transition-all"
             >
               <Calendar className="w-4 h-4" />
               Calendar
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
-              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground flex flex-col items-center gap-1 py-3 px-2 text-xs sm:text-sm"
+              className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground flex flex-col items-center gap-1 py-3 px-2 text-xs sm:text-sm transition-all"
             >
               <BarChart3 className="w-4 h-4" />
               Analytics
@@ -88,7 +105,11 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard">
-            <div className="container mx-auto px-4 py-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="container mx-auto px-4 py-8"
+            >
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-foreground mb-2">Your Habits</h2>
                 <p className="text-muted-foreground">
@@ -98,19 +119,19 @@ const Index = () => {
 
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="mb-6 bg-secondary/50 p-1 flex flex-wrap h-auto">
-                  <TabsTrigger value="all" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
+                  <TabsTrigger value="all" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all">
                     All
                   </TabsTrigger>
-                  <TabsTrigger value="health" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
+                  <TabsTrigger value="health" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all">
                     🏃 Health
                   </TabsTrigger>
-                  <TabsTrigger value="work" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
+                  <TabsTrigger value="work" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all">
                     💼 Work
                   </TabsTrigger>
-                  <TabsTrigger value="learning" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
+                  <TabsTrigger value="learning" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all">
                     📚 Learning
                   </TabsTrigger>
-                  <TabsTrigger value="other" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground">
+                  <TabsTrigger value="other" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground transition-all">
                     ✨ Other
                   </TabsTrigger>
                 </TabsList>
@@ -131,7 +152,7 @@ const Index = () => {
                   <HabitList filteredHabits={filterHabitsByCategory("other")} />
                 </TabsContent>
               </Tabs>
-            </div>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="calendar">
