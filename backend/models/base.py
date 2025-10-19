@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, DateTime, func
 from sqlalchemy.ext.declarative import declared_attr
-from database import Base  # Changed to non-relative import
+from ..database import Base  # Corrected this line
 
 class BaseModel(Base):
     """Base model with common fields"""

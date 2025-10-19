@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 from datetime import date, timedelta
 
-from .. import auth, models, schemas
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from .. import auth, models
 from ..database import get_db
+from ..schemas.analytics import AnalyticsStats
 
 router = APIRouter(
     prefix="/analytics",
@@ -35,7 +37,7 @@ def calculate_streak(checkins: list[models.HabitCheckin]) -> int:
     return streak
 
 
-@router.get("/stats", response_model=schemas.AnalyticsStats)
+@router.get("/stats", response_model=AnalyticsStats)
 def get_user_stats(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
