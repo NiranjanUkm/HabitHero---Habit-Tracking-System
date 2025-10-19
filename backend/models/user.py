@@ -1,11 +1,9 @@
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 from passlib.context import CryptContext
-from .base import BaseModel
-
+from backend.models.base import BaseModel
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 class User(BaseModel):
     __tablename__ = "users"

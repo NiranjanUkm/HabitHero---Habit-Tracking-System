@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from fastapi import Depends
 
-from .database import Base, engine
-from .routers import auth, habits, checkins, analytics
-
-Base.metadata.create_all(bind=engine)
+# Use absolute imports starting from the 'backend' package
+from backend.database import Base, engine, get_db
+from backend.routers import auth, habits, checkins, analytics
 
 app = FastAPI(
     title="Habit Hero API",
@@ -21,6 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Create database tables on startup
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
+
 app.include_router(auth.router)
 app.include_router(habits.router)
 app.include_router(checkins.router)
@@ -30,3 +36,12 @@ app.include_router(analytics.router)
 @app.get("/")
 async def root():
     return {"message": "Welcome to Habit Hero API"}
+
+@app.get("/health")
+async def health_check(db: Session = Depends(get_db)):
+    try:
+        # Test database connection
+        db.execute("SELECT 1")
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": str(e)}

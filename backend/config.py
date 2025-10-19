@@ -1,13 +1,18 @@
 import os
-from decouple import config
+from dotenv import load_dotenv
+
+# Explicitly load the .env file from the backend directory
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
 # Database
-DATABASE_URL = config("DATABASE_URL", default="postgresql://user:password@localhost/habit_hero")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # JWT
-SECRET_KEY = config("SECRET_KEY", default="your-secret-key-here")
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # App
-DEBUG = config("DEBUG", default=True, cast=bool)
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
