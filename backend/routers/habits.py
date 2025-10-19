@@ -3,9 +3,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import auth, models
-from ..database import get_db
-from ..schemas.habit import Habit, HabitCreate, HabitUpdate
+from backend import auth, models
+from backend.database import get_db
+from backend.schemas.habit import Habit, HabitCreate, HabitUpdate
 
 router = APIRouter(
     prefix="/habits",
@@ -59,8 +59,8 @@ def update_habit(
     if db_habit is None:
         raise HTTPException(status_code=404, detail="Habit not found")
 
-    for var, value in vars(habit).items():
-        setattr(db_habit, var, value) if value else None
+    for var, value in habit.dict(exclude_unset=True).items():
+        setattr(db_habit, var, value)
 
     db.add(db_habit)
     db.commit()
