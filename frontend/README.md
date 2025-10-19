@@ -1,73 +1,81 @@
-# React + TypeScript + Vite
+# Habit Hero Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Habit Hero is a modern habit tracking web application built with React, TypeScript, and Vite. It helps users build and maintain healthy habits with features like habit creation, check-ins, analytics, and calendar views.
 
-Currently, two official plugins are available:
+## Features
+- User authentication (sign up, login, logout)
+- Create, view, and delete habits
+- Track daily and weekly habit check-ins
+- Calendar view for habit completion
+- Analytics dashboard for progress and streaks
+- Responsive, mobile-friendly UI
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
+- **React** (with hooks and context)
+- **TypeScript**
+- **Vite** (for fast development and builds)
+- **Tailwind CSS** (for styling)
+- **Radix UI** (for accessible components)
+- **Recharts** (for analytics charts)
+- **Framer Motion** (for animations)
 
-## React Compiler
+## Getting Started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
+- Node.js (v18+ recommended)
+- npm or yarn
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Running Locally
+```bash
+npm run dev
 ```
+Frontend will run on [http://localhost:8080](http://localhost:8080) by default.
+
+### Environment Variables
+Create a `.env` file in the frontend directory:
+```
+VITE_API_URL=http://localhost:8000
+```
+
+### Linting & Formatting
+```bash
+npm run lint
+```
+
+## Project Structure
+```
+frontend/
+├── src/
+│   ├── components/   # UI components
+│   ├── hooks/        # Custom React hooks
+│   ├── contexts/     # Context providers
+│   ├── lib/          # Utility libraries (API, helpers)
+│   ├── types/        # TypeScript types
+│   ├── pages/        # Main app pages
+│   └── App.tsx       # Main app entry
+├── public/
+├── package.json
+├── tailwind.config.js
+└── README.md
+```
+
+## Deployment
+Build for production:
+```bash
+npm run build
+```
+Preview production build:
+```bash
+npm run preview
+```
+
+## License
+MIT
+
+---
+For backend setup, see the [backend README](../backend/README.md).
