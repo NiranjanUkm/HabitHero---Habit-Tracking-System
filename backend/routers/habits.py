@@ -3,10 +3,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import auth
-import models
+import auth, models
 from database import get_db
 from schemas.habit import Habit, HabitCreate, HabitUpdate
+from schemas.checkin import CheckIn
+
 
 router = APIRouter(
     prefix="/habits",
@@ -60,8 +61,8 @@ def update_habit(
     if db_habit is None:
         raise HTTPException(status_code=404, detail="Habit not found")
 
-    for var, value in habit.dict(exclude_unset=True).items():
-        setattr(db_habit, var, value)
+    for var, value in vars(habit).items():
+        setattr(db_habit, var, value) if value else None
 
     db.add(db_habit)
     db.commit()
@@ -86,3 +87,16 @@ def delete_habit(
     db.delete(db_habit)
     db.commit()
     return db_habit
+
+@router.get("/checkins/all", response_model=List[CheckIn])
+def read_all_user_checkins(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    checkins = (
+        db.query(models.HabitCheckin)
+        .join(models.Habit)
+        .filter(models.Habit.user_id == current_user.id)
+        .all()
+    )
+    return checkins

@@ -4,12 +4,13 @@ import { authAPI } from '@/lib/api';
 interface User {
   id: string;
   email: string;
+  username: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
+  signup: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -33,27 +34,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on app start
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const token = localStorage.getItem('authToken');
-      const userEmail = localStorage.getItem('userEmail');
-
-      if (token && userEmail) {
-        // TODO: Uncomment when backend is ready
-        // try {
-        //   const response = await authAPI.getProfile();
-        //   setUser(response.user);
-        // } catch (error) {
-        //   // Token might be invalid, clear it
-        //   localStorage.removeItem('authToken');
-        //   localStorage.removeItem('userEmail');
-        // }
-
-        // For now, simulate user from stored data
-        setUser({
-          id: 'demo-user',
-          email: userEmail
-        });
+      if (token) {
+        try {
+          // Validate token by fetching user profile
+          const userProfile = await authAPI.getProfile();
+          setUser(userProfile);
+        } catch (error) {
+          // Token is invalid or expired
+          console.error("Auth check failed:", error);
+          localStorage.removeItem('authToken');
+        }
       }
       setLoading(false);
     };
@@ -62,46 +54,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // TODO: Uncomment when backend is ready
-    // const response = await authAPI.login(email, password);
-    // localStorage.setItem('authToken', response.token);
-    // localStorage.setItem('userEmail', email);
-    // setUser(response.user);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Store auth state
-    localStorage.setItem('authToken', 'demo-token');
-    localStorage.setItem('userEmail', email);
-
-    setUser({
-      id: 'demo-user',
-      email: email
-    });
+    const response = await authAPI.login(email, password);
+    localStorage.setItem('authToken', response.access_token);
+    // After login, fetch the user profile to set the user state
+    const userProfile = await authAPI.getProfile();
+    setUser(userProfile);
   };
 
-  const signup = async (email: string, password: string) => {
-    // TODO: Uncomment when backend is ready
-    // const response = await authAPI.signup(email, password);
-    // localStorage.setItem('authToken', response.token);
-    // localStorage.setItem('userEmail', email);
-    // setUser(response.user);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  const signup = async (username: string, email: string, password: string) => {
+    await authAPI.signup(username, email, password);
+    // This function now just creates the user. It doesn't log them in.
   };
 
   const logout = () => {
-    // TODO: Uncomment when backend is ready
-    // try {
-    //   await authAPI.logout();
-    // } catch (error) {
-    //   console.error('Logout error:', error);
-    // }
-
     localStorage.removeItem('authToken');
-    localStorage.removeItem('userEmail');
     setUser(null);
   };
 

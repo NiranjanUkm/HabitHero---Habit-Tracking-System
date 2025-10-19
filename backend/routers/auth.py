@@ -1,13 +1,11 @@
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-import auth
-import models
+import auth, models
 from database import get_db
-from schemas.user import UserCreate, UserOut
 from schemas.token import Token
+from schemas.user import UserCreate, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,3 +28,10 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
         raise HTTPException(status_code=401, detail="Incorrect username or password", headers={"WWW-Authenticate": "Bearer"})
     access_token = auth.create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me", response_model=UserOut)
+async def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
+    """
+    Get current user.
+    """
+    return current_user

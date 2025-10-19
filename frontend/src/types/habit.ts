@@ -1,21 +1,19 @@
 export interface Habit {
-  id: string;
+  id: number;
   name: string;
-  frequency: 'daily' | 'weekly';
+  description?: string | null;
+  frequency: 'daily' | 'weekly' | 'monthly';
   category: 'health' | 'work' | 'learning' | 'other';
   start_date: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
+  user_id: number;
 }
 
 export interface HabitCheckin {
-  id: string;
-  habit_id: string;
-  user_id: string;
+  id: number;
+  habit_id: number;
   checkin_date: string;
-  notes?: string;
-  created_at: string;
+  notes?: string | null;
+  status: string;
 }
 
 export interface HabitWithCheckins extends Habit {

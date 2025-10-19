@@ -11,6 +11,7 @@ import { Leaf, Sparkles, Eye, EyeOff } from "lucide-react";
 
 export const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [username, setUsername] = useState(""); // New state for username
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,12 +26,12 @@ export const AuthPage = () => {
 
     try {
       if (isSignUp) {
-        await signup(email, password);
+        await signup(username, email, password); // Pass username to signup function
         toast({
           title: "Success!",
-          description: "Account created successfully. You can now sign in.",
+          description: "Account created. Please sign in.",
         });
-        setIsSignUp(false);
+        setIsSignUp(false); // Switch to sign-in form after successful signup
       } else {
         await login(email, password);
         toast({
@@ -78,6 +79,22 @@ export const AuthPage = () => {
 
         <Card className="p-6 sm:p-8 shadow-medium bg-gradient-card border-border">
           <form onSubmit={handleAuth} className="space-y-6">
+            {isSignUp && ( // Conditionally render the username input
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-foreground font-medium">
+                  Username
+                </Label>
+                <Input
+                  id="username"
+                  placeholder="e.g., john_doe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  className="border-border focus:ring-primary"
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground font-medium">
                 Email

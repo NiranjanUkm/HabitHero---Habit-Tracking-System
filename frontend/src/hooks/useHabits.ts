@@ -1,7 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Habit, HabitCheckin, HabitWithCheckins } from '@/types/habit';
 import { useAuth } from '@/contexts/AuthContext';
-import { habitsAPI } from '@/lib/api';
+import api from '@/lib/api';
+import { format, isSameDay, parseISO } from 'date-fns';
+
+// A client-side streak calculation for immediate UI feedback.
+// Note: The backend has a more robust calculation in the analytics endpoint.
+const calculateStreak = (checkins: HabitCheckin[]): number => {
+  if (!checkins || checkins.length === 0) {
+    return 0;
+  }
+
+  // Sort dates descending
+  const sortedDates = checkins.map(c => parseISO(c.checkin_date)).sort((a, b) => b.getTime() - a.getTime());
+
+  let streak = 0;
+  let today = new Date();
+
+  // Check if today or yesterday is the last check-in to start the streak
+  if (!isSameDay(sortedDates[0], today) && !isSameDay(sortedDates[0], new Date().setDate(today.getDate() - 1))) {
+    return 0;
+  }
+
+  let expectedDate = today;
+  for (const date of sortedDates) {
+    if (isSameDay(date, expectedDate)) {
+      streak++;
+      expectedDate.setDate(expectedDate.getDate() - 1);
+    } else if (isSameDay(date, new Date(expectedDate.getTime() - 1))) {
+      // handles the case where there are multiple check-ins on the same day
+      continue;
+    }
+    else {
+      break;
+    }
+  }
+
+  return streak;
+};
 
 export const useHabits = () => {
   const { user } = useAuth();
@@ -9,169 +45,78 @@ export const useHabits = () => {
   const [checkins, setCheckins] = useState<HabitCheckin[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadHabitsAndCheckins();
-    }
-  }, [user]);
-
-  const loadHabitsAndCheckins = async () => {
+  const loadHabitsAndCheckins = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    };
     try {
       setLoading(true);
-
-      // TODO: Uncomment when backend is ready
-      // const [habitsResponse, checkinsResponse] = await Promise.all([
-      //   habitsAPI.getAll(),
-      //   habitsAPI.getCheckins()
-      // ]);
-
-      // setHabits(habitsResponse.habits);
-      // setCheckins(checkinsResponse.checkins);
-
-      // For now, use mock data
-      const mockHabits: Habit[] = [
-        {
-          id: "1",
-          name: "Drink Water",
-          frequency: "daily",
-          category: "health",
-          start_date: "2024-01-01",
-          created_at: "2024-01-01T00:00:00Z",
-          updated_at: "2024-01-01T00:00:00Z",
-          user_id: user?.id || "demo-user"
-        },
-        {
-          id: "2",
-          name: "Exercise",
-          frequency: "daily",
-          category: "health",
-          start_date: "2024-01-01",
-          created_at: "2024-01-01T00:00:00Z",
-          updated_at: "2024-01-01T00:00:00Z",
-          user_id: user?.id || "demo-user"
-        },
-        {
-          id: "3",
-          name: "Read Books",
-          frequency: "daily",
-          category: "learning",
-          start_date: "2024-01-01",
-          created_at: "2024-01-01T00:00:00Z",
-          updated_at: "2024-01-01T00:00:00Z",
-          user_id: user?.id || "demo-user"
-        }
-      ];
-
-      const mockCheckins: HabitCheckin[] = [
-        {
-          id: "1",
-          habit_id: "1",
-          user_id: user?.id || "demo-user",
-          checkin_date: "2024-01-15",
-          notes: "Drank 8 glasses",
-          created_at: "2024-01-15T00:00:00Z"
-        },
-        {
-          id: "2",
-          habit_id: "2",
-          user_id: user?.id || "demo-user",
-          checkin_date: "2024-01-15",
-          notes: "30 minutes workout",
-          created_at: "2024-01-15T00:00:00Z"
-        }
-      ];
-
-      setHabits(mockHabits);
-      setCheckins(mockCheckins);
+      const [habitsResponse, checkinsResponse] = await Promise.all([
+        api.habits.getAll(),
+        api.checkins.getAllForUser(),
+      ]);
+      setHabits(habitsResponse);
+      setCheckins(checkinsResponse);
     } catch (error) {
-      console.error('Failed to load habits:', error);
+      console.error('Failed to load habits and check-ins:', error);
+      // You might want to show a toast message to the user here
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const addHabit = async (habitData: Omit<Habit, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+  useEffect(() => {
+    loadHabitsAndCheckins();
+  }, [loadHabitsAndCheckins]);
+
+  const addHabit = async (habitData: Omit<Habit, 'id' | 'user_id' | 'description' | 'frequency'> & { frequency: string }) => {
     if (!user) return;
-
-    // TODO: Uncomment when backend is ready
-    // const response = await habitsAPI.create(habitData);
-    // const newHabit = response.habit;
-    // setHabits(prev => [...prev, newHabit]);
-    // return newHabit;
-
-    // Simulate API call
-    const newHabit: Habit = {
-      ...habitData,
-      id: Date.now().toString(),
-      user_id: user.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
+    const newHabit = await api.habits.create(habitData);
     setHabits(prev => [...prev, newHabit]);
     return newHabit;
   };
 
-  const toggleCheckin = async (habitId: string) => {
+  const deleteHabit = async (habitId: number) => {
+    if (!user) return;
+    await api.habits.delete(habitId);
+    setHabits(prev => prev.filter(h => h.id !== habitId));
+    // Also remove check-ins associated with the deleted habit from local state
+    setCheckins(prev => prev.filter(c => c.habit_id !== habitId));
+  };
+
+  const toggleCheckin = async (habitId: number) => {
     if (!user) return;
 
-    const today = new Date().toISOString().split('T')[0];
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
     const existingCheckin = checkins.find(
-      c => c.habit_id === habitId && c.checkin_date === today
+      c => c.habit_id === habitId && c.checkin_date === todayStr
     );
 
     if (existingCheckin) {
-      // TODO: Uncomment when backend is ready
-      // await habitsAPI.removeCheckin(habitId, existingCheckin.id);
-      // setCheckins(prev => prev.filter(c => c.id !== existingCheckin.id));
-
-      // Simulate API call
+      // If a check-in exists for today, remove it
+      await api.checkins.removeCheckin(habitId, existingCheckin.id);
       setCheckins(prev => prev.filter(c => c.id !== existingCheckin.id));
     } else {
-      // TODO: Uncomment when backend is ready
-      // const response = await habitsAPI.addCheckin(habitId, { checkin_date: today });
-      // const newCheckin = response.checkin;
-      // setCheckins(prev => [...prev, newCheckin]);
-
-      // Simulate API call
-      const newCheckin: HabitCheckin = {
-        id: Date.now().toString(),
-        habit_id: habitId,
-        user_id: user.id,
-        checkin_date: today,
-        created_at: new Date().toISOString()
-      };
-
+      // If it doesn't exist, add a new one for today
+      const newCheckin = await api.checkins.addCheckin(habitId, { checkin_date: todayStr });
       setCheckins(prev => [...prev, newCheckin]);
     }
   };
 
-  const deleteHabit = async (habitId: string) => {
-    // TODO: Uncomment when backend is ready
-    // await habitsAPI.delete(habitId);
-    // setHabits(prev => prev.filter(h => h.id !== habitId));
-    // setCheckins(prev => prev.filter(c => c.habit_id !== habitId));
-
-    // Simulate API call
-    setHabits(prev => prev.filter(h => h.id !== habitId));
-    setCheckins(prev => prev.filter(c => c.habit_id !== habitId));
-  };
-
   const getHabitsWithCheckins = (): HabitWithCheckins[] => {
-    const today = new Date().toISOString().split('T')[0];
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
 
     return habits.map(habit => {
       const habitCheckins = checkins.filter(c => c.habit_id === habit.id);
-      const completedToday = habitCheckins.some(c => c.checkin_date === today);
-
-      // Calculate streak (simplified)
-      const streak = habitCheckins.length;
+      const completedToday = habitCheckins.some(c => c.checkin_date === todayStr);
+      const streak = calculateStreak(habitCheckins);
 
       return {
         ...habit,
         checkins: habitCheckins,
         streak,
-        completedToday
+        completedToday,
       };
     });
   };
@@ -184,6 +129,6 @@ export const useHabits = () => {
     toggleCheckin,
     deleteHabit,
     getHabitsWithCheckins,
-    refreshData: loadHabitsAndCheckins
+    refreshData: loadHabitsAndCheckins,
   };
 };
