@@ -3,9 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-# Use absolute imports starting from the 'backend' package
-from backend.database import Base, engine, get_db
-from backend.routers import auth, habits, checkins, analytics
+# FIX: Imports are now direct and simple
+from database import Base, engine, get_db
+from routers import auth, habits, checkins, analytics
 
 app = FastAPI(
     title="Habit Hero API",
@@ -13,7 +13,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8080"],
@@ -22,7 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create database tables on startup
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
@@ -32,7 +30,6 @@ app.include_router(habits.router)
 app.include_router(checkins.router)
 app.include_router(analytics.router)
 
-
 @app.get("/")
 async def root():
     return {"message": "Welcome to Habit Hero API"}
@@ -40,7 +37,6 @@ async def root():
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
     try:
-        # Test database connection
         db.execute("SELECT 1")
         return {"status": "healthy", "database": "connected"}
     except Exception as e:

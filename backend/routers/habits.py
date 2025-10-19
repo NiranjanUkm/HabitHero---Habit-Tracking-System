@@ -3,9 +3,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend import auth, models
-from backend.database import get_db
-from backend.schemas.habit import Habit, HabitCreate, HabitUpdate
+import auth
+import models
+from database import get_db
+from schemas.habit import Habit, HabitCreate, HabitUpdate
 
 router = APIRouter(
     prefix="/habits",
