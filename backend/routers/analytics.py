@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-from backend import auth, models
-from backend.database import get_db
-from backend.schemas.analytics import AnalyticsStats
+import auth
+import models
+from database import get_db
+from schemas.analytics import AnalyticsStats
 
 router = APIRouter(
     prefix="/analytics",

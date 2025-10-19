@@ -4,13 +4,13 @@ FROM python:3.11-slim
 # Set the working directory in the container
 WORKDIR /code
 
-# Copy the requirements file into the container
+# Copy the requirements file into the container first
 COPY ./requirements.txt /code/requirements.txt
 
-# Install any needed packages specified in requirements.txt
+# Install dependencies
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# Copy the entire backend folder into the container
+# Copy the rest of your application code
 COPY . /code/
 
 # Expose the port the app runs on

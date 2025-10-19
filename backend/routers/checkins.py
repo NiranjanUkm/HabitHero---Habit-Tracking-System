@@ -3,9 +3,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend import auth, models
-from backend.database import get_db
-from backend.schemas.checkin import CheckIn, CheckInCreate
+import auth
+import models
+from database import get_db
+from schemas.checkin import CheckIn, CheckInCreate
 
 router = APIRouter(
     prefix="/habits/{habit_id}/checkins",
