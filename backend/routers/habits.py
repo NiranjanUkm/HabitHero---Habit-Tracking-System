@@ -3,7 +3,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import auth, models
+# FIX: Explicitly import dependency functions
+from auth import get_current_user 
+import models
 from database import get_db
 from schemas.habit import Habit, HabitCreate, HabitUpdate
 from schemas.checkin import CheckIn
@@ -12,7 +14,7 @@ from schemas.checkin import CheckIn
 router = APIRouter(
     prefix="/habits",
     tags=["habits"],
-    dependencies=[Depends(auth.get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -20,7 +22,7 @@ router = APIRouter(
 def create_habit(
     habit: HabitCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     db_habit = models.Habit(**habit.dict(), user_id=current_user.id)
     db.add(db_habit)
@@ -34,7 +36,7 @@ def read_habits(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     habits = (
         db.query(models.Habit)
@@ -51,7 +53,7 @@ def update_habit(
     habit_id: int,
     habit: HabitUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     db_habit = (
         db.query(models.Habit)
@@ -74,7 +76,7 @@ def update_habit(
 def delete_habit(
     habit_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     db_habit = (
         db.query(models.Habit)
@@ -91,7 +93,7 @@ def delete_habit(
 @router.get("/checkins/all", response_model=List[CheckIn])
 def read_all_user_checkins(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     checkins = (
         db.query(models.HabitCheckin)

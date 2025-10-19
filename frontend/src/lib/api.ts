@@ -2,7 +2,10 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Generic fetch wrapper with error handling
-async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   const config: RequestInit = {
@@ -67,17 +70,19 @@ export const authAPI = {
 
 // --- Habits API ---
 export const habitsAPI = {
+  // FIX: Added back the crucial getAll endpoint
   getAll: async () => {
     return apiRequest<any[]>('/habits/');
   },
 
   create: async (habitData: {
     name: string;
+    description?: string; // FIX: Added optional description field
     frequency: string;
     category: string;
     start_date: string;
   }) => {
-    return apiRequest<any>('/habits/', {
+    return apiRequest<any>('/habits/', { // Returns the Habit object directly
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(habitData),
@@ -98,7 +103,7 @@ export const checkinsAPI = {
   },
   
   addCheckin: async (habitId: number, checkinData: { checkin_date: string }) => {
-    return apiRequest<any>(`/habits/${habitId}/checkins/`, {
+    return apiRequest<any>(`/habits/${habitId}/checkins/`, { // Returns the Checkin object directly
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(checkinData),
@@ -119,11 +124,56 @@ export const analyticsAPI = {
   },
 };
 
+// --- AI API ---
+export const aiAPI = {
+  suggestHabits: async () => {
+    return apiRequest<any[]>('/ai/suggest_habits');
+  },
+};
+
+// --- Report API ---
+export const reportAPI = {
+  exportPdf: async () => {
+    // Note: We use the browser's native fetch and Blob to handle file download directly, 
+    // bypassing our generic apiRequest function which expects JSON.
+    const url = `${API_BASE_URL}/report/pdf`;
+    const token = localStorage.getItem('authToken');
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate PDF report.');
+    }
+
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get('Content-Disposition') || 'filename=report.pdf';
+    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+    const filename = filenameMatch ? filenameMatch[1] : 'report.pdf';
+
+    // Trigger file download
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+  }
+};
+
 const api = {
   auth: authAPI,
   habits: habitsAPI,
-  checkins: checkinsAPI,
+  checkins: checkinsAPI, // FIX: Ensure checkinsAPI is included
   analytics: analyticsAPI,
+  ai: aiAPI,
+  report: reportAPI,
 };
 
 export default api;

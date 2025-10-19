@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useState, useMemo } from "react"; // Import useMemo
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useHabits } from "@/hooks/useHabits";
+import type { HabitCheckin, HabitWithCheckins } from "@/types/habit"; 
+import * as React from 'react'; // Import React
 
-export const CalendarView = () => {
-  const { checkins, getHabitsWithCheckins } = useHabits();
+interface CalendarViewProps {
+  checkins: HabitCheckin[];
+  habits: HabitWithCheckins[]; 
+}
+
+const CalendarViewComponent = ({ checkins, habits }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const habitsWithCheckins = getHabitsWithCheckins();
+  // FIX: Memoize the filtered habits for efficiency, though the key prop forces the re-render.
+  const habitsWithCheckins = useMemo(() => habits, [habits]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -147,3 +153,5 @@ export const CalendarView = () => {
     </div>
   );
 };
+
+export const CalendarView = React.memo(CalendarViewComponent);

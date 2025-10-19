@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { Header } from "@/components/layout/Header";
@@ -6,86 +5,38 @@ import { Dashboard } from "@/components/dashboard/Dashboard";
 import { Analytics } from "@/components/analytics/Analytics";
 import { CalendarView } from "@/components/calendar/CalendarView";
 import { HabitForm } from "@/components/habits/HabitForm";
+// FIX: Import the new AI Suggestions Modal
+import { AISuggestionsModal } from "@/components/habits/AISuggestionsModal"; 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Calendar, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext"; 
+// FIX: Import useState and useMemo from 'react'
+import { useState, useMemo } from "react"; 
+import { useHabits } from "@/hooks/useHabits";   
 
 const Index = () => {
-  const [user, setUser] = useState<any>(null);
-  const [habits, setHabits] = useState<any[]>([]);
-  const [checkins, setCheckins] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 1. ALL HOOKS MUST RUN UNCONDITIONALLY AT THE TOP LEVEL
+  const { user, loading: authLoading } = useAuth(); 
+  const { 
+    habits, // Dependency for useMemo
+    checkins, // Dependency for useMemo and key
+    loading: habitsLoading, 
+    refreshData: refreshHabitData, 
+    getHabitsWithCheckins 
+  } = useHabits();
+  
   const [showAddHabit, setShowAddHabit] = useState(false);
+  const [showAISuggestions, setShowAISuggestions] = useState(false); // FIX: State for AI Modal
 
-  useEffect(() => {
-    // Simulate authentication check
-    const checkAuth = async () => {
-      // Simulate checking if user is logged in
-      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-      if (isLoggedIn) {
-        setUser({ id: 'demo-user', email: 'demo@example.com' });
-      }
-      setLoading(false);
-    };
+  // FIX: MOVED useMemo to the top level so it runs unconditionally (Rules of Hooks fix)
+  const habitsWithCheckins = useMemo(() => {
+    return getHabitsWithCheckins();
+  }, [habits, checkins, getHabitsWithCheckins]); 
+  
+  
+  const isLoading = authLoading || habitsLoading;
 
-    checkAuth();
-  }, []);
-
-  const fetchData = async () => {
-    if (!user) return;
-
-    // Simulate API calls - replace with actual backend calls later
-    // For now, use mock data
-    const mockHabits = [
-      {
-        id: "1",
-        name: "Drink Water",
-        frequency: "daily",
-        category: "health",
-        start_date: "2024-01-01",
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-        user_id: user.id
-      },
-      {
-        id: "2",
-        name: "Exercise",
-        frequency: "daily",
-        category: "health",
-        start_date: "2024-01-01",
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z",
-        user_id: user.id
-      }
-    ];
-
-    const mockCheckins = [
-      {
-        id: "1",
-        habit_id: "1",
-        user_id: user.id,
-        checkin_date: "2024-01-15",
-        notes: "Drank 8 glasses",
-        created_at: "2024-01-15T00:00:00Z"
-      },
-      {
-        id: "2",
-        habit_id: "2",
-        user_id: user.id,
-        checkin_date: "2024-01-15",
-        notes: "30 minutes workout",
-        created_at: "2024-01-15T00:00:00Z"
-      }
-    ];
-
-    setHabits(mockHabits);
-    setCheckins(mockCheckins);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [user]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
         <motion.div
@@ -99,13 +50,27 @@ const Index = () => {
     );
   }
 
+  // Conditional early return is now safely below all hook calls
   if (!user) {
     return <AuthPage />;
   }
+  
+  const handleHabitSuccess = () => {
+      setShowAddHabit(false);
+      // Trigger data refresh to update the habits list
+      refreshHabitData(); 
+  };
+
+  // FIX: checkins.length is used as a key to force re-render for responsiveness
+  const dataUpdateKey = checkins.length;
+
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <Header onOpenAddHabit={() => setShowAddHabit(true)} />
+      <Header 
+        onOpenAddHabit={() => setShowAddHabit(true)} 
+        onOpenAISuggestions={() => setShowAISuggestions(true)} // FIX: Pass open handler to Header
+      />
 
       <main className="pb-8">
         <Tabs defaultValue="dashboard" className="container mx-auto px-4 pt-6">
@@ -134,15 +99,28 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard">
-            <Dashboard habits={habits} checkins={checkins} onUpdate={() => {}} />
+            <Dashboard 
+                key={dataUpdateKey} // Force re-render on data change
+                habits={habitsWithCheckins} 
+                checkins={checkins} 
+                onUpdate={refreshHabitData} 
+            />
           </TabsContent>
 
           <TabsContent value="calendar">
-            <CalendarView checkins={checkins} />
+            <CalendarView 
+                key={dataUpdateKey} // Force re-render on data change
+                checkins={checkins} 
+                habits={habitsWithCheckins}
+            />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Analytics habits={habits} checkins={checkins} />
+            <Analytics 
+                key={dataUpdateKey} // Force re-render on data change
+                habits={habitsWithCheckins} 
+                checkins={checkins} 
+            />
           </TabsContent>
         </Tabs>
       </main>
@@ -150,7 +128,18 @@ const Index = () => {
       <HabitForm
         open={showAddHabit}
         onOpenChange={setShowAddHabit}
-        onSuccess={() => {}}
+        onSuccess={handleHabitSuccess} 
+      />
+      
+      {/* FIX: Render the AI Suggestions Modal */}
+      <AISuggestionsModal
+        open={showAISuggestions}
+        onOpenChange={setShowAISuggestions}
+        onHabitAdded={() => {
+          // Close modal and trigger data refresh after habit is added from AI
+          setShowAISuggestions(false);
+          refreshHabitData();
+        }}
       />
     </div>
   );

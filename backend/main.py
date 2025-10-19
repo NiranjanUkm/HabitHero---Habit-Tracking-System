@@ -1,3 +1,5 @@
+from dotenv import load_dotenv # Import load_dotenv
+load_dotenv() # Load variables from .env file immediately
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -5,7 +7,7 @@ from fastapi import Depends
 
 # FIX: Imports are now direct and simple
 from database import Base, engine, get_db
-from routers import auth, habits, checkins, analytics
+from routers import auth, habits, checkins, analytics, ai, report
 
 app = FastAPI(
     title="Habit Hero API",
@@ -29,6 +31,8 @@ app.include_router(auth.router)
 app.include_router(habits.router)
 app.include_router(checkins.router)
 app.include_router(analytics.router)
+app.include_router(ai.router)
+app.include_router(report.router)
 
 @app.get("/")
 async def root():

@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, Trash2, Loader2 } from "lucide-react";
 import { useHabits } from "@/hooks/useHabits";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { HabitWithCheckins } from "@/types/habit";
+import type { HabitWithCheckins } from "@/types/habit"; 
+import { format } from "date-fns"; // Import format
 
 interface HabitCardProps {
   habit: HabitWithCheckins;
@@ -26,19 +27,34 @@ const categoryColors: Record<string, string> = {
 };
 
 export const HabitCard = ({ habit }: HabitCardProps) => {
-  const { toggleCheckin, deleteHabit } = useHabits();
+  // FIX: Destructure checkins directly from the hook to get the LATEST state
+  const { toggleCheckin, deleteHabit, checkins } = useHabits();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // FIX: Recalculate completedToday locally using the LATEST checkins state
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const completedToday = checkins.some(
+      // NOTE: We check for habit.id OR temporary ID (-1) if in optimistic update
+      c => c.habit_id === habit.id && c.checkin_date === todayStr
+  );
+  
+  // This status is what the toast message should use
+  const willBeCompleted = !completedToday; 
+
   const handleToggleCheckin = async () => {
     setLoading(true);
     try {
+      // Await the toggle function (which updates the global checkins state optimistically)
       await toggleCheckin(habit.id);
+      
+      // The local 'completedToday' status is correct for the toast message
       toast({
         title: "Success!",
-        description: habit.completedToday ? "Check-in removed" : "Check-in added",
+        description: completedToday ? "Check-in removed" : "Check-in added", 
       });
+
     } catch (error: any) {
       toast({
         title: "Error",
@@ -46,6 +62,7 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
         variant: "destructive",
       });
     } finally {
+      // The UI will now update instantly because the 'checkins' state (a direct dependency) changed.
       setLoading(false);
     }
   };
@@ -70,6 +87,16 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
       setDeleting(false);
     }
   };
+  
+  // Conditionally render the button icon based on state
+  const checkmarkIcon = loading ? (
+    <Loader2 className="w-6 h-6 text-primary animate-spin" /> // Spinner while loading
+  ) : completedToday ? ( 
+    <CheckCircle2 className="w-6 h-6 text-success" />
+  ) : (
+    <Circle className="w-6 h-6 text-muted-foreground hover:text-primary" />
+  );
+
 
   return (
     <motion.div
@@ -86,16 +113,12 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
           <div className="flex items-start gap-3 flex-1">
             <motion.button
               onClick={handleToggleCheckin}
-              disabled={loading}
+              disabled={loading || deleting}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               className="mt-1 hover:scale-110 transition-transform"
             >
-              {habit.completedToday ? (
-                <CheckCircle2 className="w-6 h-6 text-success" />
-              ) : (
-                <Circle className="w-6 h-6 text-muted-foreground hover:text-primary" />
-              )}
+              {checkmarkIcon}
             </motion.button>
 
             <div className="flex-1">
@@ -117,10 +140,10 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
             variant="outline"
             size="icon"
             onClick={handleDelete}
-            disabled={deleting}
+            disabled={deleting || loading}
             className="hover:bg-destructive hover:text-destructive-foreground border-border transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
+            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
           </Button>
         </div>
       </Card>

@@ -3,7 +3,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-import auth
+# FIX: Explicitly import dependency functions
+from auth import get_current_user 
 import models
 from database import get_db
 from schemas.checkin import CheckIn, CheckInCreate
@@ -11,7 +12,7 @@ from schemas.checkin import CheckIn, CheckInCreate
 router = APIRouter(
     prefix="/habits/{habit_id}/checkins",
     tags=["checkins"],
-    dependencies=[Depends(auth.get_current_user)],
+    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -20,7 +21,7 @@ def create_checkin_for_habit(
     habit_id: int,
     checkin: CheckInCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     db_habit = (
         db.query(models.Habit)
@@ -42,7 +43,7 @@ def read_checkins_for_habit(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     db_habit = (
         db.query(models.Habit)
@@ -66,7 +67,7 @@ def delete_checkin(
     habit_id: int,
     checkin_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
+    current_user: models.User = Depends(get_current_user),
 ):
     db_checkin = (
         db.query(models.HabitCheckin)

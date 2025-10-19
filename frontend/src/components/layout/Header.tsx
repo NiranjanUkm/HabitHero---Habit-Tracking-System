@@ -1,14 +1,17 @@
+// frontend/src/components/layout/Header.tsx
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Leaf, LogOut, Plus, Menu } from "lucide-react";
+import { Leaf, LogOut, Plus, Menu, Sparkles } from "lucide-react"; // Import Sparkles
 import { useState } from "react";
 
 interface HeaderProps {
   onOpenAddHabit?: () => void;
+  onOpenAISuggestions?: () => void; // FIX: Add new prop
 }
 
-export const Header = ({ onOpenAddHabit }: HeaderProps) => {
+export const Header = ({ onOpenAddHabit, onOpenAISuggestions }: HeaderProps) => { // FIX: Destructure new prop
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -29,6 +32,16 @@ export const Header = ({ onOpenAddHabit }: HeaderProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-3">
+            {user && onOpenAISuggestions && ( // FIX: AI Suggestion Button
+              <Button
+                onClick={onOpenAISuggestions}
+                variant="secondary"
+                className="hover:bg-accent/70 shadow-medium flex items-center gap-1"
+              >
+                <Sparkles className="w-4 h-4 text-accent" />
+                AI Suggest
+              </Button>
+            )}
             {user && onOpenAddHabit && (
               <Button
                 onClick={onOpenAddHabit}
@@ -67,6 +80,19 @@ export const Header = ({ onOpenAddHabit }: HeaderProps) => {
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-border pt-4">
             <div className="flex flex-col gap-3">
+              {user && onOpenAISuggestions && ( // FIX: AI Suggestion Button (Mobile)
+                <Button
+                  onClick={() => {
+                    onOpenAISuggestions();
+                    setMobileMenuOpen(false);
+                  }}
+                  variant="secondary"
+                  className="hover:bg-accent/70 shadow-medium w-full justify-start"
+                >
+                  <Sparkles className="w-4 h-4 mr-2 text-accent" />
+                  AI Suggest
+                </Button>
+              )}
               {user && onOpenAddHabit && (
                 <Button
                   onClick={() => {

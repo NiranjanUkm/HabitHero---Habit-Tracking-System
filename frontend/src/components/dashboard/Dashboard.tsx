@@ -1,36 +1,23 @@
 import { motion } from "framer-motion";
 import { HabitCard } from "../habits/HabitCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface Habit {
-  id: string;
-  name: string;
-  frequency: string;
-  category: string;
-  start_date: string;
-}
+import type { HabitWithCheckins, HabitCheckin } from "@/types/habit"; 
+import * as React from 'react'; // Import React for React.memo
 
 interface DashboardProps {
-  habits: Habit[];
-  checkins: any[];
+  habits: HabitWithCheckins[];
+  checkins: HabitCheckin[];
   onUpdate: () => void;
 }
 
-export const Dashboard = ({ habits, checkins, onUpdate }: DashboardProps) => {
-  const today = new Date().toISOString().split("T")[0];
-
-  const isCheckedToday = (habitId: string) => {
-    return checkins.some(
-      (checkin) => checkin.habit_id === habitId && checkin.checkin_date === today
-    );
-  };
-
-  const filterHabitsByCategory = (category?: string) => {
+const DashboardComponent = ({ habits }: DashboardProps) => { 
+  
+  const filterHabitsByCategory = (category?: string): HabitWithCheckins[] => {
     if (!category) return habits;
     return habits.filter((h) => h.category === category);
   };
 
-  const HabitList = ({ filteredHabits }: { filteredHabits: Habit[] }) => (
+  const HabitList = ({ filteredHabits }: { filteredHabits: HabitWithCheckins[] }) => (
     <div className="space-y-3">
       {filteredHabits.length === 0 ? (
         <motion.div
@@ -50,8 +37,6 @@ export const Dashboard = ({ habits, checkins, onUpdate }: DashboardProps) => {
           >
             <HabitCard
               habit={habit}
-              isCheckedToday={isCheckedToday(habit.id)}
-              onUpdate={onUpdate}
             />
           </motion.div>
         ))
@@ -110,3 +95,5 @@ export const Dashboard = ({ habits, checkins, onUpdate }: DashboardProps) => {
     </div>
   );
 };
+
+export const Dashboard = React.memo(DashboardComponent);

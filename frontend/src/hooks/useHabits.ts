@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Habit, HabitCheckin, HabitWithCheckins } from '@/types/habit';
+import type { Habit, HabitCheckin, HabitWithCheckins } from '@/types/habit';
 import { useAuth } from '@/contexts/AuthContext';
-import api from '@/lib/api';
+// FIX: Import the correct API structures
+import api from '@/lib/api'; 
 import { format, isSameDay, parseISO } from 'date-fns';
 
 // A client-side streak calculation for immediate UI feedback.
-// Note: The backend has a more robust calculation in the analytics endpoint.
 const calculateStreak = (checkins: HabitCheckin[]): number => {
   if (!checkins || checkins.length === 0) {
     return 0;
@@ -45,6 +45,7 @@ export const useHabits = () => {
   const [checkins, setCheckins] = useState<HabitCheckin[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // FIX: Converted to useCallback for dependency stability
   const loadHabitsAndCheckins = useCallback(async () => {
     if (!user) {
       setLoading(false);
@@ -52,10 +53,12 @@ export const useHabits = () => {
     };
     try {
       setLoading(true);
+      // FIX: Use the correct API calls from the integrated 'api' object
       const [habitsResponse, checkinsResponse] = await Promise.all([
         api.habits.getAll(),
         api.checkins.getAllForUser(),
       ]);
+      // FIX: The backend returns a straight array, no need for .habits/checkins
       setHabits(habitsResponse);
       setCheckins(checkinsResponse);
     } catch (error) {
@@ -70,18 +73,20 @@ export const useHabits = () => {
     loadHabitsAndCheckins();
   }, [loadHabitsAndCheckins]);
 
-  const addHabit = async (habitData: Omit<Habit, 'id' | 'user_id' | 'description' | 'frequency'> & { frequency: string }) => {
+  // FIX: Ensure habitData type is correctly defined as the input to the API
+  const addHabit = async (habitData: { name: string; description?: string; frequency: string; category: string; start_date: string; }) => {
     if (!user) return;
+    // FIX: API returns the new habit object directly (type is `Habit`)
     const newHabit = await api.habits.create(habitData);
-    setHabits(prev => [...prev, newHabit]);
-    return newHabit;
+    // FIX: Safely cast the returned object to the Habit type
+    setHabits(prev => [...prev, newHabit as Habit]); 
+    return newHabit as Habit;
   };
 
   const deleteHabit = async (habitId: number) => {
     if (!user) return;
     await api.habits.delete(habitId);
     setHabits(prev => prev.filter(h => h.id !== habitId));
-    // Also remove check-ins associated with the deleted habit from local state
     setCheckins(prev => prev.filter(c => c.habit_id !== habitId));
   };
 
@@ -94,13 +99,38 @@ export const useHabits = () => {
     );
 
     if (existingCheckin) {
-      // If a check-in exists for today, remove it
-      await api.checkins.removeCheckin(habitId, existingCheckin.id);
-      setCheckins(prev => prev.filter(c => c.id !== existingCheckin.id));
+      // DELETE: Optimistically update by filtering out the removed check-in
+      setCheckins(prev => prev.filter(c => c.id !== existingCheckin.id)); // Optimistic update
+      try {
+        await api.checkins.removeCheckin(habitId, existingCheckin.id);
+      } catch (error) {
+        // Handle rollback if API fails, though usually not strictly necessary for this task level
+        console.error("Failed to remove check-in:", error);
+        // On failure, re-add the existing check-in to local state
+        setCheckins(prev => [...prev, existingCheckin]);
+        throw error;
+      }
     } else {
-      // If it doesn't exist, add a new one for today
-      const newCheckin = await api.checkins.addCheckin(habitId, { checkin_date: todayStr });
-      setCheckins(prev => [...prev, newCheckin]);
+      // ADD: Optimistically update by using a placeholder/mocked ID before API returns
+      const tempCheckin: HabitCheckin = { // Create temporary check-in object
+        id: -1, // Use a placeholder ID
+        habit_id: habitId,
+        checkin_date: todayStr,
+        notes: null,
+        status: 'completed'
+      };
+      setCheckins(prev => [...prev, tempCheckin]); // Optimistic update
+      
+      try {
+        // FIX: Use the correct API call from checkinsAPI
+        const newCheckin = await api.checkins.addCheckin(habitId, { checkin_date: todayStr });
+        // Replace temporary check-in with real one from API response
+        setCheckins(prev => prev.filter(c => c.id !== -1).concat(newCheckin as HabitCheckin));
+      } catch (error) {
+        // Handle rollback: remove the temporary check-in on failure
+        setCheckins(prev => prev.filter(c => c.id !== -1));
+        throw error;
+      }
     }
   };
 
@@ -109,7 +139,9 @@ export const useHabits = () => {
 
     return habits.map(habit => {
       const habitCheckins = checkins.filter(c => c.habit_id === habit.id);
+      // NOTE: This includes the optimistic change from the setCheckins call above!
       const completedToday = habitCheckins.some(c => c.checkin_date === todayStr);
+
       const streak = calculateStreak(habitCheckins);
 
       return {

@@ -33,37 +33,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuth = async () => {
+  // Function to load the user profile based on the stored token
+  const loadProfile = async () => {
       const token = localStorage.getItem('authToken');
       if (token) {
-        try {
-          // Validate token by fetching user profile
-          const userProfile = await authAPI.getProfile();
-          setUser(userProfile);
-        } catch (error) {
-          // Token is invalid or expired
-          console.error("Auth check failed:", error);
-          localStorage.removeItem('authToken');
-        }
+          try {
+              const userProfile = await authAPI.getProfile();
+              setUser(userProfile);
+          } catch (error) {
+              console.error("Auth check failed:", error);
+              localStorage.removeItem('authToken');
+              setUser(null); // Clear user if token is invalid
+          }
       }
       setLoading(false);
-    };
+  };
 
-    checkAuth();
-  }, []);
+  useEffect(() => {
+    loadProfile();
+  }, []); // Run only on initial mount
 
   const login = async (email: string, password: string) => {
+    // 1. Get the token
     const response = await authAPI.login(email, password);
     localStorage.setItem('authToken', response.access_token);
-    // After login, fetch the user profile to set the user state
-    const userProfile = await authAPI.getProfile();
-    setUser(userProfile);
+    
+    // 2. Fetch the user profile and update state
+    await loadProfile(); 
+    // This will update the user state and trigger Index.tsx to redirect/show dashboard
   };
 
   const signup = async (username: string, email: string, password: string) => {
     await authAPI.signup(username, email, password);
-    // This function now just creates the user. It doesn't log them in.
   };
 
   const logout = () => {
