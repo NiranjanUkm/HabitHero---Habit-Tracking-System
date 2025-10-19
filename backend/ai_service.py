@@ -1,18 +1,29 @@
-# backend/ai_service.py (CORRECTED)
-
 import os
 import json
 from typing import List, Dict
-from groq import Groq
+from groq import Groq, GroqError
 from pydantic import BaseModel, Field
 import time 
 import random 
 import asyncio
 from datetime import datetime
 
-client = Groq()
+# FIX: Explicitly get the API key from the environment
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+# 1. Initialize the Groq Client
+# FIX: Pass the key explicitly to ensure the client is initialized correctly 
+# in Uvicorn's subprocess environment.
+try:
+    client = Groq(api_key=GROQ_API_KEY)
+except GroqError:
+    # Provide a graceful fallback if the key is still missing
+    client = None
+    print("WARNING: Groq client failed to initialize at startup. Check GROQ_API_KEY in .env")
+
 MODEL = "mixtral-8x7b-32768" 
 
+# 2. Define the Structured Output Schema (Pydantic)
 class SuggestedHabit(BaseModel):
     name: str = Field(..., description="A concise name for the suggested habit.")
     description: str = Field(..., description="A short, encouraging description of the habit.")
@@ -22,8 +33,19 @@ class SuggestedHabit(BaseModel):
 class HabitSuggestions(BaseModel):
     suggestions: List[SuggestedHabit]
 
+# 3. Core AI Generation Function (Async for FastAPI compatibility)
 async def get_habit_suggestions(current_habits_summary: List[Dict]) -> List[SuggestedHabit]:
+    """
+    Generates new habit suggestions based on the user's existing habits using Groq.
+    """
     
+    # Check if client initialized successfully
+    if not client:
+        return [
+            SuggestedHabit(name="API Key Error", description="The Groq client failed to initialize. Check GROQ_API_KEY.", category="other", frequency="daily")
+        ]
+    
+    # 1. Context generation
     if current_habits_summary:
         habits_list = "\n".join(
             [f"- {h['name']} ({h['category']}, {h['frequency']})" for h in current_habits_summary]
@@ -32,6 +54,7 @@ async def get_habit_suggestions(current_habits_summary: List[Dict]) -> List[Sugg
     else:
         user_context = "The user has not added any habits yet. Provide diverse suggestions across categories to help them start their routine."
 
+    # 2. Cache Buster
     cache_buster_seed = random.randint(100000, 999999) 
 
     system_prompt = (
@@ -44,7 +67,7 @@ async def get_habit_suggestions(current_habits_summary: List[Dict]) -> List[Sugg
     
     user_prompt = (
         f"{user_context}\n\n"
-        f"Based on this context, suggest 3 new, unique habits that complement their routine. "
+        f"Based on this context, suggest 3 new habits that complement their routine. "
         f"Ensure the suggestions are not duplicates of the user's current habits. "
         f"Request Seed: {cache_buster_seed}" 
     )
@@ -58,7 +81,6 @@ async def get_habit_suggestions(current_habits_summary: List[Dict]) -> List[Sugg
             ],
             model=MODEL,
             temperature=0.9, 
-            # FIX: Changed response_model to response_format
             response_format={"type": "json_object", "schema": HabitSuggestions.model_json_schema()} 
         ))
         
@@ -73,6 +95,7 @@ async def get_habit_suggestions(current_habits_summary: List[Dict]) -> List[Sugg
             SuggestedHabit(name="Clear Inbox", description="Process emails to reach zero daily.", category="work", frequency="daily")
         ]
 
+# --- Helper for getting habit summary (used by endpoint) ---
 def get_habits_summary(habits: List[Dict]) -> List[Dict]:
     return [
         {"name": h.name, "category": h.category, "frequency": h.frequency}
