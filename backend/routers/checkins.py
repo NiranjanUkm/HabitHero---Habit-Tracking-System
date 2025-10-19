@@ -3,8 +3,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import auth, models, schemas
+from .. import auth, models
 from ..database import get_db
+from ..schemas.checkin import CheckIn, CheckInCreate
 
 router = APIRouter(
     prefix="/habits/{habit_id}/checkins",
@@ -13,10 +14,10 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=schemas.CheckIn)
+@router.post("/", response_model=CheckIn)
 def create_checkin_for_habit(
     habit_id: int,
-    checkin: schemas.CheckInCreate,
+    checkin: CheckInCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
@@ -34,7 +35,7 @@ def create_checkin_for_habit(
     return db_checkin
 
 
-@router.get("/", response_model=List[schemas.CheckIn])
+@router.get("/", response_model=List[CheckIn])
 def read_checkins_for_habit(
     habit_id: int,
     skip: int = 0,
@@ -59,7 +60,7 @@ def read_checkins_for_habit(
     return checkins
 
 
-@router.delete("/{checkin_id}", response_model=schemas.CheckIn)
+@router.delete("/{checkin_id}", response_model=CheckIn)
 def delete_checkin(
     habit_id: int,
     checkin_id: int,
