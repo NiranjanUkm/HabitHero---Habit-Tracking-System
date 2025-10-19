@@ -3,8 +3,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import auth, models, schemas
+from .. import auth, models
 from ..database import get_db
+from ..schemas.habit import Habit, HabitCreate, HabitUpdate
 
 router = APIRouter(
     prefix="/habits",
@@ -13,9 +14,9 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=schemas.Habit)
+@router.post("/", response_model=Habit)
 def create_habit(
-    habit: schemas.HabitCreate,
+    habit: HabitCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
@@ -26,7 +27,7 @@ def create_habit(
     return db_habit
 
 
-@router.get("/", response_model=List[schemas.Habit])
+@router.get("/", response_model=List[Habit])
 def read_habits(
     skip: int = 0,
     limit: int = 100,
@@ -43,10 +44,10 @@ def read_habits(
     return habits
 
 
-@router.put("/{habit_id}", response_model=schemas.Habit)
+@router.put("/{habit_id}", response_model=Habit)
 def update_habit(
     habit_id: int,
-    habit: schemas.HabitUpdate,
+    habit: HabitUpdate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
@@ -67,7 +68,7 @@ def update_habit(
     return db_habit
 
 
-@router.delete("/{habit_id}", response_model=schemas.Habit)
+@router.delete("/{habit_id}", response_model=Habit)
 def delete_habit(
     habit_id: int,
     db: Session = Depends(get_db),
