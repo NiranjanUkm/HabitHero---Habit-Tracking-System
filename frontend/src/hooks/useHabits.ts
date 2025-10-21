@@ -11,8 +11,14 @@ const calculateStreak = (checkins: HabitCheckin[]): number => {
     return 0;
   }
 
-  // Sort dates descending
-  const sortedDates = checkins.map(c => parseISO(c.checkin_date)).sort((a, b) => b.getTime() - a.getTime());
+  // Sort dates descending - handle both date strings and full datetime strings
+  const sortedDates = checkins.map(c => {
+    // If it's already a date string (YYYY-MM-DD), parse it directly
+    if (c.checkin_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return new Date(c.checkin_date + 'T00:00:00.000Z');
+    }
+    return parseISO(c.checkin_date);
+  }).sort((a, b) => b.getTime() - a.getTime());
 
   let streak = 0;
   let today = new Date();
@@ -94,9 +100,14 @@ export const useHabits = () => {
     if (!user) return;
 
     const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const existingCheckin = checkins.find(
-      c => c.habit_id === habitId && c.checkin_date === todayStr
-    );
+    const existingCheckin = checkins.find(c => {
+      const checkinDate = c.checkin_date;
+      // Handle both date strings and datetime strings for comparison
+      if (checkinDate.includes('T')) {
+        return c.habit_id === habitId && checkinDate.split('T')[0] === todayStr;
+      }
+      return c.habit_id === habitId && checkinDate === todayStr;
+    });
 
     if (existingCheckin) {
       // DELETE: Optimistically update by filtering out the removed check-in
@@ -140,7 +151,15 @@ export const useHabits = () => {
     return habits.map(habit => {
       const habitCheckins = checkins.filter(c => c.habit_id === habit.id);
       // NOTE: This includes the optimistic change from the setCheckins call above!
-      const completedToday = habitCheckins.some(c => c.checkin_date === todayStr);
+      // Handle both date strings and datetime strings for comparison
+      const completedToday = habitCheckins.some(c => {
+        const checkinDate = c.checkin_date;
+        // If it's a full datetime string, extract just the date part
+        if (checkinDate.includes('T')) {
+          return checkinDate.split('T')[0] === todayStr;
+        }
+        return checkinDate === todayStr;
+      });
 
       const streak = calculateStreak(habitCheckins);
 

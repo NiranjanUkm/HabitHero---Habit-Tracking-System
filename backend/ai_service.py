@@ -41,9 +41,52 @@ async def get_habit_suggestions(current_habits_summary: List[Dict]) -> List[Sugg
     
     # Check if client initialized successfully
     if not client:
-        return [
-            SuggestedHabit(name="API Key Error", description="The Groq client failed to initialize. Check GROQ_API_KEY.", category="other", frequency="daily")
+        # Provide helpful fallback suggestions when API key is missing
+        fallback_suggestions = [
+            SuggestedHabit(
+                name="Morning Stretch", 
+                description="Start your day with 5 minutes of gentle stretching", 
+                category="health", 
+                frequency="daily"
+            ),
+            SuggestedHabit(
+                name="Gratitude Journal", 
+                description="Write down three things you're grateful for each day", 
+                category="other", 
+                frequency="daily"
+            ),
+            SuggestedHabit(
+                name="Deep Breathing", 
+                description="Take 5 deep breaths whenever you feel stressed", 
+                category="health", 
+                frequency="daily"
+            )
         ]
+        
+        # Add more suggestions based on existing habits
+        if current_habits_summary:
+            # If user has health habits, suggest work/learning
+            has_health = any(h['category'] == 'health' for h in current_habits_summary)
+            has_work = any(h['category'] == 'work' for h in current_habits_summary)
+            has_learning = any(h['category'] == 'learning' for h in current_habits_summary)
+            
+            if not has_work:
+                fallback_suggestions.append(SuggestedHabit(
+                    name="Clear Workspace", 
+                    description="Organize your desk for 5 minutes before starting work", 
+                    category="work", 
+                    frequency="daily"
+                ))
+            
+            if not has_learning:
+                fallback_suggestions.append(SuggestedHabit(
+                    name="Read 10 Pages", 
+                    description="Read 10 pages of a book or article daily", 
+                    category="learning", 
+                    frequency="daily"
+                ))
+        
+        return fallback_suggestions[:3]  # Return up to 3 suggestions
     
     # 1. Context generation
     if current_habits_summary:
@@ -90,10 +133,36 @@ async def get_habit_suggestions(current_habits_summary: List[Dict]) -> List[Sugg
 
     except Exception as e:
         print(f"Groq API Error: {e}")
-        return [
+        # Provide diverse fallback suggestions when API fails
+        fallback_suggestions = [
             SuggestedHabit(name="Mindful Minute", description="Take a 60-second break to breathe.", category="health", frequency="daily"),
-            SuggestedHabit(name="Clear Inbox", description="Process emails to reach zero daily.", category="work", frequency="daily")
+            SuggestedHabit(name="Clear Inbox", description="Process emails to reach zero daily.", category="work", frequency="daily"),
+            SuggestedHabit(name="Learn Something New", description="Spend 10 minutes learning a new skill or topic.", category="learning", frequency="daily")
         ]
+        
+        # Add suggestions based on existing habits
+        if current_habits_summary:
+            has_health = any(h['category'] == 'health' for h in current_habits_summary)
+            has_work = any(h['category'] == 'work' for h in current_habits_summary)
+            has_learning = any(h['category'] == 'learning' for h in current_habits_summary)
+            
+            if not has_health:
+                fallback_suggestions.append(SuggestedHabit(
+                    name="Walk 10 Minutes", 
+                    description="Take a 10-minute walk outside", 
+                    category="health", 
+                    frequency="daily"
+                ))
+            
+            if not has_work:
+                fallback_suggestions.append(SuggestedHabit(
+                    name="Plan Tomorrow", 
+                    description="Write down 3 priorities for tomorrow", 
+                    category="work", 
+                    frequency="daily"
+                ))
+        
+        return fallback_suggestions[:3]
 
 # --- Helper for getting habit summary (used by endpoint) ---
 def get_habits_summary(habits: List[Dict]) -> List[Dict]:

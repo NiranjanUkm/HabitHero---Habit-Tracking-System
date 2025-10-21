@@ -7,6 +7,7 @@ import { format, subDays } from 'date-fns';
 import api from '@/lib/api'; 
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { useHabits } from '@/hooks/useHabits';
 
 interface AnalyticsProps {
   habits: HabitWithCheckins[];
@@ -26,7 +27,14 @@ const calculateWeeklyProgress = (checkins: HabitCheckin[]) => {
     // Count unique habits checked off on this specific date
     const uniqueHabitIdsChecked = new Set(
       checkins
-        .filter(c => c.checkin_date === dateStr)
+        .filter(c => {
+          const checkinDate = c.checkin_date;
+          // Handle both date strings and datetime strings for comparison
+          if (checkinDate.includes('T')) {
+            return checkinDate.split('T')[0] === dateStr;
+          }
+          return checkinDate === dateStr;
+        })
         .map(c => c.habit_id)
     ).size;
 
@@ -39,9 +47,12 @@ const calculateWeeklyProgress = (checkins: HabitCheckin[]) => {
 };
 
 
-const AnalyticsComponent = ({ habits: habitsWithCheckins, checkins }: AnalyticsProps) => {
+const AnalyticsComponent = ({ habits: habitsWithCheckins, checkins: _propCheckins }: AnalyticsProps) => {
   const { toast } = useToast();
-  const [exporting, setExporting] = React.useState(false); 
+  const [exporting, setExporting] = React.useState(false);
+  
+  // Use global checkins state for instant updates
+  const { checkins } = useHabits(); 
 
   // --- STATS Calculation ---
   const totalHabits = habitsWithCheckins.length;

@@ -5,14 +5,18 @@ import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HabitCheckin, HabitWithCheckins } from "@/types/habit"; 
 import * as React from 'react'; // Import React
+import { useHabits } from '@/hooks/useHabits';
 
 interface CalendarViewProps {
   checkins: HabitCheckin[];
   habits: HabitWithCheckins[]; 
 }
 
-const CalendarViewComponent = ({ checkins, habits }: CalendarViewProps) => {
+const CalendarViewComponent = ({ checkins: _propCheckins, habits }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Use global checkins state for instant updates
+  const { checkins } = useHabits();
 
   // FIX: Memoize the filtered habits for efficiency, though the key prop forces the re-render.
   const habitsWithCheckins = useMemo(() => habits, [habits]);
@@ -23,7 +27,14 @@ const CalendarViewComponent = ({ checkins, habits }: CalendarViewProps) => {
 
   const getCheckinsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return checkins.filter(checkin => checkin.checkin_date === dateStr);
+    return checkins.filter(checkin => {
+      const checkinDate = checkin.checkin_date;
+      // Handle both date strings and datetime strings for comparison
+      if (checkinDate.includes('T')) {
+        return checkinDate.split('T')[0] === dateStr;
+      }
+      return checkinDate === dateStr;
+    });
   };
 
   const getHabitsCompletedOnDate = (date: Date) => {

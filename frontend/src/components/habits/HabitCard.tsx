@@ -27,18 +27,19 @@ const categoryColors: Record<string, string> = {
 };
 
 export const HabitCard = ({ habit }: HabitCardProps) => {
-  // FIX: Destructure checkins directly from the hook to get the LATEST state
+  // Use global checkins for instant optimistic UI updates
   const { toggleCheckin, deleteHabit, checkins } = useHabits();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // FIX: Recalculate completedToday locally using the LATEST checkins state
+  // Recompute completedToday from latest global checkins (optimistic updates included)
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const completedToday = checkins.some(
-      // NOTE: We check for habit.id OR temporary ID (-1) if in optimistic update
-      c => c.habit_id === habit.id && c.checkin_date === todayStr
-  );
+  const completedToday = checkins.some(c => {
+    if (c.habit_id !== habit.id) return false;
+    const d = c.checkin_date;
+    return d.includes('T') ? d.split('T')[0] === todayStr : d === todayStr;
+  });
   
   // This status is what the toast message should use
   const willBeCompleted = !completedToday; 
@@ -49,10 +50,10 @@ export const HabitCard = ({ habit }: HabitCardProps) => {
       // Await the toggle function (which updates the global checkins state optimistically)
       await toggleCheckin(habit.id);
       
-      // The local 'completedToday' status is correct for the toast message
+      // Use pre-toggle intent for messaging
       toast({
         title: "Success!",
-        description: completedToday ? "Check-in removed" : "Check-in added", 
+        description: willBeCompleted ? "Check-in added" : "Check-in removed", 
       });
 
     } catch (error: any) {
